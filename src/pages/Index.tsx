@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlayerForm, type Player } from '@/components/PlayerForm';
 import { PlayerList } from '@/components/PlayerList';
 import { MatchForm } from '@/components/MatchForm';
@@ -14,9 +14,34 @@ import {
 } from "@/components/ui/select"
 
 const Index = () => {
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string>('');
+  // Initialize state with data from localStorage if it exists
+  const [players, setPlayers] = useState<Player[]>(() => {
+    const savedPlayers = localStorage.getItem('players');
+    return savedPlayers ? JSON.parse(savedPlayers) : [];
+  });
+
+  const [matches, setMatches] = useState<Match[]>(() => {
+    const savedMatches = localStorage.getItem('matches');
+    return savedMatches ? JSON.parse(savedMatches) : [];
+  });
+
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>(() => {
+    const savedPlayerId = localStorage.getItem('selectedPlayerId');
+    return savedPlayerId || '';
+  });
+
+  // Save to localStorage whenever data changes
+  useEffect(() => {
+    localStorage.setItem('players', JSON.stringify(players));
+  }, [players]);
+
+  useEffect(() => {
+    localStorage.setItem('matches', JSON.stringify(matches));
+  }, [matches]);
+
+  useEffect(() => {
+    localStorage.setItem('selectedPlayerId', selectedPlayerId);
+  }, [selectedPlayerId]);
 
   const handleAddPlayer = (newPlayer: Player) => {
     if (players.length >= 25) {
