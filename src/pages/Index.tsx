@@ -5,10 +5,18 @@ import { MatchForm } from '@/components/MatchForm';
 import { MatchList } from '@/components/MatchList';
 import { Match } from '@/types/match';
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const Index = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>('');
 
   const handleAddPlayer = (newPlayer: Player) => {
     if (players.length >= 25) {
@@ -20,6 +28,9 @@ const Index = () => {
 
   const handleDeletePlayer = (id: string) => {
     setPlayers(players.filter(player => player.id !== id));
+    if (selectedPlayerId === id) {
+      setSelectedPlayerId('');
+    }
     toast.success("Player removed successfully!");
   };
 
@@ -49,6 +60,16 @@ const Index = () => {
       }
       return match;
     }));
+    
+    const isNowAvailable = matches
+      .find(m => m.id === matchId)
+      ?.availablePlayers.includes(playerId) === false;
+    
+    toast.success(
+      isNowAvailable 
+        ? "You're now marked as available for this match" 
+        : "You're now marked as unavailable for this match"
+    );
   };
 
   return (
@@ -57,6 +78,25 @@ const Index = () => {
         <h1 className="text-4xl font-bold text-tennis-blue text-center mb-8">
           Tennis Team Manager
         </h1>
+
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Select Your Player Profile</h2>
+          <Select
+            value={selectedPlayerId}
+            onValueChange={setSelectedPlayerId}
+          >
+            <SelectTrigger className="w-full max-w-xs">
+              <SelectValue placeholder="Select your player profile" />
+            </SelectTrigger>
+            <SelectContent>
+              {players.map((player) => (
+                <SelectItem key={player.id} value={player.id}>
+                  {player.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>
@@ -74,6 +114,7 @@ const Index = () => {
               matches={matches}
               onDeleteMatch={handleDeleteMatch}
               onToggleAvailability={handleToggleAvailability}
+              currentPlayerId={selectedPlayerId}
             />
           </div>
         </div>
