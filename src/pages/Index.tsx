@@ -91,7 +91,7 @@ const Index = () => {
             <SelectContent>
               {players.map((player) => (
                 <SelectItem key={player.id} value={player.id}>
-                  {player.name}
+                  {`${player.firstName} ${player.lastName}`}
                 </SelectItem>
               ))}
             </SelectContent>
