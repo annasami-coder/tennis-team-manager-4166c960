@@ -22,11 +22,28 @@ interface PlayerFormProps {
   onAddPlayer: (player: Player) => void;
 }
 
+const formatPhoneNumber = (value: string) => {
+  // Remove all non-numeric characters
+  const phoneNumber = value.replace(/\D/g, '');
+  
+  // Format to XXX-XXX-XXXX
+  if (phoneNumber.length >= 10) {
+    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+  }
+  
+  return phoneNumber;
+};
+
 export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [cellNumber, setCellNumber] = useState("");
   const [ustaRating, setUstaRating] = useState("");
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedNumber = formatPhoneNumber(e.target.value);
+    setCellNumber(formattedNumber);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,11 +53,17 @@ export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
       return;
     }
 
+    // Validate phone number format
+    if (cellNumber.replace(/\D/g, '').length !== 10) {
+      toast.error("Please enter a valid 10-digit phone number");
+      return;
+    }
+
     const newPlayer: Player = {
       id: crypto.randomUUID(),
       firstName,
       lastName,
-      cellNumber,
+      cellNumber: formatPhoneNumber(cellNumber), // Ensure consistent format
       ustaRating
     };
 
@@ -82,10 +105,11 @@ export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
         <label className="text-sm font-medium">Cell Number</label>
         <Input
           value={cellNumber}
-          onChange={(e) => setCellNumber(e.target.value)}
-          placeholder="Cell Number"
+          onChange={handlePhoneChange}
+          placeholder="XXX-XXX-XXXX"
           type="tel"
           className="w-full"
+          maxLength={12}
         />
       </div>
 
