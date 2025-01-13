@@ -9,13 +9,21 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("Auth component mounted");
+    console.log("Current URL:", window.location.href);
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session);
       if (event === "SIGNED_IN" && session) {
+        console.log("User signed in, navigating to home");
         navigate("/");
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log("Cleaning up auth subscriptions");
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
@@ -39,7 +47,7 @@ const Auth = () => {
               },
             }}
             providers={["discord"]}
-            redirectTo={window.location.origin}
+            redirectTo={`${window.location.origin}/auth/callback`}
           />
         </div>
       </div>
