@@ -5,8 +5,9 @@ import { MatchForm } from '@/components/MatchForm';
 import { MatchList } from '@/components/MatchList';
 import { Match } from '@/types/match';
 import { toast } from "sonner";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/select"
 
 const Index = () => {
+  const navigate = useNavigate();
   // Initialize state with data from localStorage if it exists
   const [players, setPlayers] = useState<Player[]>(() => {
     const savedPlayers = localStorage.getItem('players');
@@ -99,6 +101,15 @@ const Index = () => {
     );
   };
 
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Error signing out");
+    } else {
+      navigate("/auth");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -106,9 +117,14 @@ const Index = () => {
           <h1 className="text-4xl font-bold text-tennis-blue">
             Tennis Team Manager
           </h1>
-          <Button asChild>
-            <Link to="/availability">View Availability Overview</Link>
-          </Button>
+          <div className="flex gap-4">
+            <Button asChild>
+              <Link to="/availability">View Availability Overview</Link>
+            </Button>
+            <Button variant="outline" onClick={handleLogout}>
+              Logout
+            </Button>
+          </div>
         </div>
 
         <div className="mb-8">
