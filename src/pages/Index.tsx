@@ -5,6 +5,8 @@ import { MatchForm } from '@/components/MatchForm';
 import { MatchList } from '@/components/MatchList';
 import { Match } from '@/types/match';
 import { toast } from "sonner";
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -100,9 +102,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-tennis-blue text-center mb-8">
-          Tennis Team Manager
-        </h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-tennis-blue">
+            Tennis Team Manager
+          </h1>
+          <Button asChild>
+            <Link to="/availability">View Availability Overview</Link>
+          </Button>
+        </div>
 
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Select Your Player Profile</h2>
