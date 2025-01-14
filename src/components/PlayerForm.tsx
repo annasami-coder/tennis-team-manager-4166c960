@@ -3,20 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 const USTA_RATINGS = [
   "2.5C", "2.5S", "2.5A", "3.0C", "3.0S", "3.0A", 
   "3.5C", "3.5S", "3.5A", "4.0S", "4.0A", "4.0C", 
   "4.5S", "4.5A", "4.5C", "5.0C", "5.0A", "5.0S"
-];
+] as const;
+
+export type USTARating = typeof USTA_RATINGS[number];
 
 export interface Player {
   id: string;
   firstName: string;
   lastName: string;
   cellNumber: string;
-  ustaRating: string;
+  ustaRating: USTARating;
 }
 
 interface PlayerFormProps {
@@ -35,14 +36,14 @@ export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [cellNumber, setCellNumber] = useState("");
-  const [ustaRating, setUstaRating] = useState("");
+  const [ustaRating, setUstaRating] = useState<USTARating | "">("");
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedNumber = formatPhoneNumber(e.target.value);
     setCellNumber(formattedNumber);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!firstName || !lastName || !cellNumber || !ustaRating) {
@@ -55,44 +56,22 @@ export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
       return;
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('players')
-        .insert([
-          {
-            first_name: firstName,
-            last_name: lastName,
-            cell_number: formatPhoneNumber(cellNumber),
-            rating: ustaRating
-          }
-        ])
-        .select()
-        .single();
+    const newPlayer: Player = {
+      id: Date.now().toString(),
+      firstName,
+      lastName,
+      cellNumber: formatPhoneNumber(cellNumber),
+      ustaRating: ustaRating as USTARating
+    };
 
-      if (error) throw error;
-
-      if (data) {
-        const newPlayer: Player = {
-          id: data.id.toString(),
-          firstName: data.first_name,
-          lastName: data.last_name,
-          cellNumber: data.cell_number,
-          ustaRating: data.rating
-        };
-
-        onAddPlayer(newPlayer);
-        toast.success("Player added successfully!");
-        
-        // Reset form
-        setFirstName("");
-        setLastName("");
-        setCellNumber("");
-        setUstaRating("");
-      }
-    } catch (error) {
-      console.error('Error adding player:', error);
-      toast.error("Failed to add player. Please try again.");
-    }
+    onAddPlayer(newPlayer);
+    toast.success("Player added successfully!");
+    
+    // Reset form
+    setFirstName("");
+    setLastName("");
+    setCellNumber("");
+    setUstaRating("");
   };
 
   return (
