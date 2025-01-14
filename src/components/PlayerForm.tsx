@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const USTA_RATINGS = [
   "2.5C", "2.5S", "2.5A", "3.0C", "3.0S", "3.0A", 
@@ -23,14 +24,10 @@ interface PlayerFormProps {
 }
 
 const formatPhoneNumber = (value: string) => {
-  // Remove all non-numeric characters
   const phoneNumber = value.replace(/\D/g, '');
-  
-  // Format to XXX-XXX-XXXX
   if (phoneNumber.length >= 10) {
     return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
   }
-  
   return phoneNumber;
 };
 
@@ -45,7 +42,7 @@ export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
     setCellNumber(formattedNumber);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!firstName || !lastName || !cellNumber || !ustaRating) {
@@ -53,28 +50,49 @@ export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
       return;
     }
 
-    // Validate phone number format
     if (cellNumber.replace(/\D/g, '').length !== 10) {
       toast.error("Please enter a valid 10-digit phone number");
       return;
     }
 
-    const newPlayer: Player = {
-      id: crypto.randomUUID(),
-      firstName,
-      lastName,
-      cellNumber: formatPhoneNumber(cellNumber), // Ensure consistent format
-      ustaRating
-    };
+    try {
+      const { data, error } = await supabase
+        .from('players')
+        .insert([
+          {
+            first_name: firstName,
+            last_name: lastName,
+            cell_number: formatPhoneNumber(cellNumber),
+            rating: ustaRating
+          }
+        ])
+        .select()
+        .single();
 
-    onAddPlayer(newPlayer);
-    toast.success("Player added successfully!");
-    
-    // Reset form
-    setFirstName("");
-    setLastName("");
-    setCellNumber("");
-    setUstaRating("");
+      if (error) throw error;
+
+      if (data) {
+        const newPlayer: Player = {
+          id: data.id.toString(),
+          firstName: data.first_name,
+          lastName: data.last_name,
+          cellNumber: data.cell_number,
+          ustaRating: data.rating
+        };
+
+        onAddPlayer(newPlayer);
+        toast.success("Player added successfully!");
+        
+        // Reset form
+        setFirstName("");
+        setLastName("");
+        setCellNumber("");
+        setUstaRating("");
+      }
+    } catch (error) {
+      console.error('Error adding player:', error);
+      toast.error("Failed to add player. Please try again.");
+    }
   };
 
   return (

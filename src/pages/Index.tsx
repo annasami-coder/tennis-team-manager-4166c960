@@ -1,150 +1,92 @@
 import { useState, useEffect } from 'react';
 import { PlayerForm, type Player } from '@/components/PlayerForm';
 import { PlayerList } from '@/components/PlayerList';
-import { MatchForm } from '@/components/MatchForm';
-import { MatchList } from '@/components/MatchList';
-import { Match } from '@/types/match';
-import { toast } from "sonner";
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { toast } from "sonner";
 
 const Index = () => {
-  const navigate = useNavigate();
-  // Initialize state with data from localStorage if it exists
-  const [players, setPlayers] = useState<Player[]>(() => {
-    const savedPlayers = localStorage.getItem('players');
-    return savedPlayers ? JSON.parse(savedPlayers) : [];
-  });
-
-  const [matches, setMatches] = useState<Match[]>(() => {
-    const savedMatches = localStorage.getItem('matches');
-    return savedMatches ? JSON.parse(savedMatches) : [];
-  });
-
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string>(() => {
-    const savedPlayerId = localStorage.getItem('selectedPlayerId');
-    return savedPlayerId || '';
-  });
-
-  // Save to localStorage whenever data changes
-  useEffect(() => {
-    localStorage.setItem('players', JSON.stringify(players));
-  }, [players]);
+  const [players, setPlayers] = useState<Player[]>([]);
 
   useEffect(() => {
-    localStorage.setItem('matches', JSON.stringify(matches));
-  }, [matches]);
+    fetchPlayers();
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('selectedPlayerId', selectedPlayerId);
-  }, [selectedPlayerId]);
+  const fetchPlayers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('players')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data) {
+        const formattedPlayers: Player[] = data.map(player => ({
+          id: player.id.toString(),
+          firstName: player.first_name,
+          lastName: player.last_name,
+          cellNumber: player.cell_number,
+          ustaRating: player.rating
+        }));
+        setPlayers(formattedPlayers);
+      }
+    } catch (error) {
+      console.error('Error fetching players:', error);
+      toast.error("Failed to load players. Please refresh the page.");
+    }
+  };
 
   const handleAddPlayer = (newPlayer: Player) => {
-    if (players.length >= 25) {
-      toast.error("Maximum team size (25) reached!");
-      return;
+    setPlayers([newPlayer, ...players]);
+  };
+
+  const handleDeletePlayer = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('players')
+        .delete()
+        .eq('id', parseInt(id));
+
+      if (error) throw error;
+
+      setPlayers(players.filter(player => player.id !== id));
+      toast.success("Player removed successfully!");
+    } catch (error) {
+      console.error('Error deleting player:', error);
+      toast.error("Failed to delete player. Please try again.");
     }
-    setPlayers([...players, newPlayer]);
   };
 
-  const handleDeletePlayer = (id: string) => {
-    setPlayers(players.filter(player => player.id !== id));
-    if (selectedPlayerId === id) {
-      setSelectedPlayerId('');
-    }
-    toast.success("Player removed successfully!");
-  };
+  const handleEditPlayer = async (id: string, updatedPlayer: Partial<Player>) => {
+    try {
+      const { error } = await supabase
+        .from('players')
+        .update({
+          first_name: updatedPlayer.firstName,
+          last_name: updatedPlayer.lastName,
+          cell_number: updatedPlayer.cellNumber,
+          rating: updatedPlayer.ustaRating
+        })
+        .eq('id', parseInt(id));
 
-  const handleEditPlayer = (id: string, updatedPlayer: Partial<Player>) => {
-    setPlayers(players.map(player => 
-      player.id === id ? { ...player, ...updatedPlayer } : player
-    ));
-    toast.success("Player updated successfully!");
-  };
+      if (error) throw error;
 
-  const handleAddMatch = (newMatch: Match) => {
-    setMatches([...matches, newMatch]);
-  };
-
-  const handleDeleteMatch = (id: string) => {
-    setMatches(matches.filter(match => match.id !== id));
-    toast.success("Match removed successfully!");
-  };
-
-  const handleToggleAvailability = (matchId: string, playerId: string) => {
-    setMatches(matches.map(match => {
-      if (match.id === matchId) {
-        const availablePlayers = match.availablePlayers.includes(playerId)
-          ? match.availablePlayers.filter(id => id !== playerId)
-          : [...match.availablePlayers, playerId];
-        return { ...match, availablePlayers };
-      }
-      return match;
-    }));
-    
-    const isNowAvailable = matches
-      .find(m => m.id === matchId)
-      ?.availablePlayers.includes(playerId) === false;
-    
-    toast.success(
-      isNowAvailable 
-        ? "You're now marked as available for this match" 
-        : "You're now marked as unavailable for this match"
-    );
-  };
-
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error("Error signing out");
-    } else {
-      navigate("/auth");
+      setPlayers(players.map(player => 
+        player.id === id ? { ...player, ...updatedPlayer } : player
+      ));
+      toast.success("Player updated successfully!");
+    } catch (error) {
+      console.error('Error updating player:', error);
+      toast.error("Failed to update player. Please try again.");
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-tennis-blue">
-            Tennis Team Manager
-          </h1>
-          <div className="flex gap-4">
-            <Button asChild>
-              <Link to="/availability">View Availability Overview</Link>
-            </Button>
-            <Button variant="outline" onClick={handleLogout}>
-              Logout
-            </Button>
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Select Your Player Profile</h2>
-          <Select
-            value={selectedPlayerId}
-            onValueChange={setSelectedPlayerId}
-          >
-            <SelectTrigger className="w-full max-w-xs">
-              <SelectValue placeholder="Select your player profile" />
-            </SelectTrigger>
-            <SelectContent>
-              {players.map((player) => (
-                <SelectItem key={player.id} value={player.id}>
-                  {`${player.firstName} ${player.lastName}`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <h1 className="text-4xl font-bold text-tennis-blue mb-8">
+          Tennis Team Manager
+        </h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>
@@ -153,16 +95,6 @@ const Index = () => {
               players={players} 
               onDeletePlayer={handleDeletePlayer}
               onEditPlayer={handleEditPlayer}
-            />
-          </div>
-          
-          <div>
-            <MatchForm onAddMatch={handleAddMatch} />
-            <MatchList 
-              matches={matches}
-              onDeleteMatch={handleDeleteMatch}
-              onToggleAvailability={handleToggleAvailability}
-              currentPlayerId={selectedPlayerId}
             />
           </div>
         </div>
