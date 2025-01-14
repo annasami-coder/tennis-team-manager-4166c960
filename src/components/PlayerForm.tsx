@@ -57,11 +57,11 @@ export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
     }
 
     const newPlayer: Player = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       firstName,
       lastName,
       cellNumber: formatPhoneNumber(cellNumber),
-      ustaRating: ustaRating as USTARating
+      ustaRating
     };
 
     onAddPlayer(newPlayer);
@@ -112,7 +112,7 @@ export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
 
       <div className="space-y-2">
         <label className="text-sm font-medium">USTA Rating</label>
-        <Select value={ustaRating} onValueChange={setUstaRating}>
+        <Select value={ustaRating} onValueChange={(value: USTARating) => setUstaRating(value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select Rating" />
           </SelectTrigger>

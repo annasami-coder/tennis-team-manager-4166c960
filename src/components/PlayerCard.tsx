@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Player } from './PlayerForm';
+import { Player, USTARating, USTA_RATINGS } from './PlayerForm';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Edit2, Check, X } from "lucide-react";
+import { Pencil, Trash2, X, Check } from "lucide-react";
 
 interface PlayerCardProps {
   player: Player;
@@ -12,25 +12,19 @@ interface PlayerCardProps {
   onEdit: (id: string, updatedPlayer: Partial<Player>) => void;
 }
 
-const USTA_RATINGS = [
-  "2.5C", "2.5S", "2.5A", "3.0C", "3.0S", "3.0A", 
-  "3.5C", "3.5S", "3.5A", "4.0S", "4.0A", "4.0C", 
-  "4.5S", "4.5A", "4.5C", "5.0C", "5.0A", "5.0S"
-];
-
 export const PlayerCard = ({ player, onDelete, onEdit }: PlayerCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedFirstName, setEditedFirstName] = useState(player.firstName);
   const [editedLastName, setEditedLastName] = useState(player.lastName);
   const [editedCellNumber, setEditedCellNumber] = useState(player.cellNumber);
-  const [editedUstaRating, setEditedUstaRating] = useState(player.ustaRating);
+  const [editedRating, setEditedRating] = useState<USTARating>(player.ustaRating);
 
   const handleSave = () => {
     onEdit(player.id, {
       firstName: editedFirstName,
       lastName: editedLastName,
       cellNumber: editedCellNumber,
-      ustaRating: editedUstaRating
+      ustaRating: editedRating
     });
     setIsEditing(false);
   };
@@ -39,104 +33,108 @@ export const PlayerCard = ({ player, onDelete, onEdit }: PlayerCardProps) => {
     setEditedFirstName(player.firstName);
     setEditedLastName(player.lastName);
     setEditedCellNumber(player.cellNumber);
-    setEditedUstaRating(player.ustaRating);
+    setEditedRating(player.ustaRating);
     setIsEditing(false);
   };
-
-  if (isEditing) {
-    return (
-      <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <div className="space-y-2 w-full">
-            <Input
-              value={editedFirstName}
-              onChange={(e) => setEditedFirstName(e.target.value)}
-              placeholder="First Name"
-            />
-            <Input
-              value={editedLastName}
-              onChange={(e) => setEditedLastName(e.target.value)}
-              placeholder="Last Name"
-            />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Input
-            value={editedCellNumber}
-            onChange={(e) => setEditedCellNumber(e.target.value)}
-            placeholder="Cell Number"
-            type="tel"
-          />
-          <Select value={editedUstaRating} onValueChange={setEditedUstaRating}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Rating" />
-            </SelectTrigger>
-            <SelectContent>
-              {USTA_RATINGS.map((rating) => (
-                <SelectItem key={rating} value={rating}>
-                  {rating}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex justify-end space-x-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleCancel}
-              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSave}
-              className="text-green-500 hover:text-green-700 hover:bg-green-50"
-            >
-              <Check className="h-5 w-5" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <h3 className="font-bold text-lg">
-          {player.firstName} {player.lastName}
+          {isEditing ? (
+            <div className="flex gap-2">
+              <Input
+                value={editedFirstName}
+                onChange={(e) => setEditedFirstName(e.target.value)}
+                className="w-24"
+              />
+              <Input
+                value={editedLastName}
+                onChange={(e) => setEditedLastName(e.target.value)}
+                className="w-24"
+              />
+            </div>
+          ) : (
+            `${player.firstName} ${player.lastName}`
+          )}
         </h3>
-        <div className="flex space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsEditing(true)}
-            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
-          >
-            <Edit2 className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete(player.id)}
-            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-          >
-            <Trash2 className="h-5 w-5" />
-          </Button>
+        <div className="flex gap-2">
+          {isEditing ? (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSave}
+                className="text-green-500 hover:text-green-700 hover:bg-green-50"
+              >
+                <Check className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleCancel}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsEditing(true)}
+                className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+              >
+                <Pencil className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onDelete(player.id)}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-5 w-5" />
+              </Button>
+            </>
+          )}
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-1">
+        <div className="space-y-2">
           <p className="text-sm text-gray-600">
-            <span className="font-medium">Rating:</span>{" "}
-            <span className="bg-tennis-yellow px-2 py-1 rounded text-black">
-              {player.ustaRating}
-            </span>
+            <span className="font-medium">Cell:</span>{" "}
+            {isEditing ? (
+              <Input
+                value={editedCellNumber}
+                onChange={(e) => setEditedCellNumber(e.target.value)}
+                className="w-32 inline-block"
+              />
+            ) : (
+              player.cellNumber
+            )}
           </p>
           <p className="text-sm text-gray-600">
-            <span className="font-medium">Cell:</span> {player.cellNumber}
+            <span className="font-medium">USTA Rating:</span>{" "}
+            {isEditing ? (
+              <Select 
+                value={editedRating} 
+                onValueChange={(value: USTARating) => setEditedRating(value)}
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue placeholder="Rating" />
+                </SelectTrigger>
+                <SelectContent>
+                  {USTA_RATINGS.map((rating) => (
+                    <SelectItem key={rating} value={rating}>
+                      {rating}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              player.ustaRating
+            )}
           </p>
         </div>
       </CardContent>
