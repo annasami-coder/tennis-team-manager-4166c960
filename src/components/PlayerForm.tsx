@@ -8,16 +8,14 @@ const USTA_RATINGS = [
   "2.5C", "2.5S", "2.5A", "3.0C", "3.0S", "3.0A", 
   "3.5C", "3.5S", "3.5A", "4.0S", "4.0A", "4.0C", 
   "4.5S", "4.5A", "4.5C", "5.0C", "5.0A", "5.0S"
-] as const;
-
-export type USTARating = typeof USTA_RATINGS[number];
+];
 
 export interface Player {
   id: string;
   firstName: string;
   lastName: string;
   cellNumber: string;
-  ustaRating: USTARating;
+  ustaRating: string;
 }
 
 interface PlayerFormProps {
@@ -25,10 +23,14 @@ interface PlayerFormProps {
 }
 
 const formatPhoneNumber = (value: string) => {
+  // Remove all non-numeric characters
   const phoneNumber = value.replace(/\D/g, '');
+  
+  // Format to XXX-XXX-XXXX
   if (phoneNumber.length >= 10) {
     return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
   }
+  
   return phoneNumber;
 };
 
@@ -36,7 +38,7 @@ export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [cellNumber, setCellNumber] = useState("");
-  const [ustaRating, setUstaRating] = useState<USTARating | "">("");
+  const [ustaRating, setUstaRating] = useState("");
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedNumber = formatPhoneNumber(e.target.value);
@@ -51,6 +53,7 @@ export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
       return;
     }
 
+    // Validate phone number format
     if (cellNumber.replace(/\D/g, '').length !== 10) {
       toast.error("Please enter a valid 10-digit phone number");
       return;
@@ -60,7 +63,7 @@ export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
       id: crypto.randomUUID(),
       firstName,
       lastName,
-      cellNumber: formatPhoneNumber(cellNumber),
+      cellNumber: formatPhoneNumber(cellNumber), // Ensure consistent format
       ustaRating
     };
 
@@ -112,7 +115,7 @@ export const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
 
       <div className="space-y-2">
         <label className="text-sm font-medium">USTA Rating</label>
-        <Select value={ustaRating} onValueChange={(value: USTARating) => setUstaRating(value)}>
+        <Select value={ustaRating} onValueChange={setUstaRating}>
           <SelectTrigger>
             <SelectValue placeholder="Select Rating" />
           </SelectTrigger>
