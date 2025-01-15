@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { Match } from '@/types/match';
+import { format } from 'date-fns';
 
 interface MatchFormProps {
   onAddMatch: () => void;
@@ -24,7 +25,9 @@ export const MatchForm = ({ onAddMatch, matchToEdit, onCancel }: MatchFormProps)
       setOpponent(matchToEdit.opponent);
       setIsHome(matchToEdit.match_type === 'home');
       setLocation(matchToEdit.location);
-      setDateTime(matchToEdit.date_time);
+      // Format the date for the datetime-local input
+      const date = new Date(matchToEdit.date_time);
+      setDateTime(format(date, "yyyy-MM-dd'T'HH:mm"));
     }
   }, [matchToEdit]);
 
@@ -37,6 +40,9 @@ export const MatchForm = ({ onAddMatch, matchToEdit, onCancel }: MatchFormProps)
     }
 
     try {
+      // Create a Date object from the input value
+      const date = new Date(dateTime);
+      
       if (matchToEdit) {
         const { error } = await supabase
           .from('matches')
@@ -44,7 +50,7 @@ export const MatchForm = ({ onAddMatch, matchToEdit, onCancel }: MatchFormProps)
             opponent,
             match_type: isHome ? 'home' : 'away',
             location,
-            date_time: dateTime
+            date_time: date.toISOString()
           })
           .eq('id', matchToEdit.id);
 
@@ -57,7 +63,7 @@ export const MatchForm = ({ onAddMatch, matchToEdit, onCancel }: MatchFormProps)
             opponent,
             match_type: isHome ? 'home' : 'away',
             location,
-            date_time: dateTime
+            date_time: date.toISOString()
           });
 
         if (error) throw error;

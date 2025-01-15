@@ -2,7 +2,7 @@ import { Match } from '@/types/match';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Trash2, Edit } from "lucide-react";
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -58,6 +58,9 @@ export const MatchCard = ({
     }
   };
 
+  // Parse the date string to a Date object
+  const matchDate = parseISO(match.date_time);
+  
   return (
     <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -95,11 +98,11 @@ export const MatchCard = ({
             </p>
             <p className="text-sm text-gray-600">
               <span className="font-medium">Date:</span>{" "}
-              {format(new Date(match.date_time), "PPP")}
+              {format(matchDate, "EEEE, MMMM d, yyyy")}
             </p>
             <p className="text-sm text-gray-600">
               <span className="font-medium">Time:</span>{" "}
-              {format(new Date(match.date_time), "p")}
+              {format(matchDate, "h:mm a")}
             </p>
           </div>
 
