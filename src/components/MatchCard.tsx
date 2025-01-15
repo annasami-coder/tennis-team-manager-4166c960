@@ -11,9 +11,12 @@ import { useEffect, useState } from "react";
 interface MatchCardProps {
   match: Match;
   onDelete: (id: string) => void;
+  playerId?: string;
+  isAvailable?: boolean;
+  onAvailabilityChange?: () => void;
 }
 
-export const MatchCard = ({ match, onDelete }: MatchCardProps) => {
+export const MatchCard = ({ match, onDelete, playerId, isAvailable, onAvailabilityChange }: MatchCardProps) => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<string>("");
   const [availability, setAvailability] = useState<string>("no");
@@ -21,6 +24,13 @@ export const MatchCard = ({ match, onDelete }: MatchCardProps) => {
   useEffect(() => {
     fetchPlayers();
   }, []);
+
+  useEffect(() => {
+    if (playerId) {
+      setSelectedPlayer(playerId);
+      setAvailability(isAvailable ? "yes" : "no");
+    }
+  }, [playerId, isAvailable]);
 
   const fetchPlayers = async () => {
     try {
@@ -62,6 +72,9 @@ export const MatchCard = ({ match, onDelete }: MatchCardProps) => {
       if (error) throw error;
       setAvailability(value);
       toast.success("Availability updated successfully");
+      if (onAvailabilityChange) {
+        onAvailabilityChange();
+      }
     } catch (error) {
       console.error('Error updating availability:', error);
       toast.error("Failed to update availability");
