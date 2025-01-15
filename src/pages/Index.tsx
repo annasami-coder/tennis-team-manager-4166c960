@@ -3,6 +3,9 @@ import { PlayerForm, type Player } from "@/components/PlayerForm";
 import { PlayerList } from "@/components/PlayerList";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
+
+type USTARating = Database["public"]["Enums"]["usta_rating"];
 
 const Index = () => {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -48,11 +51,10 @@ const Index = () => {
       const { error } = await supabase
         .from("players")
         .insert({
-          id: newPlayer.id,
           first_name: newPlayer.firstName,
           last_name: newPlayer.lastName,
           cell_number: newPlayer.cellNumber,
-          usta_rating: newPlayer.ustaRating
+          usta_rating: newPlayer.ustaRating as USTARating
         });
 
       if (error) {
@@ -98,7 +100,7 @@ const Index = () => {
           first_name: updatedPlayer.firstName,
           last_name: updatedPlayer.lastName,
           cell_number: updatedPlayer.cellNumber,
-          usta_rating: updatedPlayer.ustaRating
+          usta_rating: updatedPlayer.ustaRating as USTARating
         })
         .eq("id", id);
 
