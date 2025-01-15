@@ -9,17 +9,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Check, X } from "lucide-react";
+import { Check, X, MinusCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const AvailabilityView = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
-  const [availabilities, setAvailabilities] = useState<Record<string, string[]>>({});
+  const [availabilities, setAvailabilities] = useState<Record<string, Record<string, string>>>({});
 
   const fetchData = async () => {
     try {
+      console.log('Fetching availability data...');
+      
       // Fetch matches
       const { data: matchesData, error: matchesError } = await supabase
         .from('matches')
@@ -28,6 +30,7 @@ export const AvailabilityView = () => {
 
       if (matchesError) throw matchesError;
       setMatches(matchesData || []);
+      console.log('Fetched matches:', matchesData);
 
       // Fetch players
       const { data: playersData, error: playersError } = await supabase
@@ -36,22 +39,23 @@ export const AvailabilityView = () => {
 
       if (playersError) throw playersError;
       setPlayers(playersData || []);
+      console.log('Fetched players:', playersData);
 
       // Fetch all availabilities
       const { data: availabilityData, error: availabilityError } = await supabase
         .from('player_availability')
-        .select('*')
-        .eq('is_available', true);
+        .select('*');
 
       if (availabilityError) throw availabilityError;
+      console.log('Fetched availabilities:', availabilityData);
 
       // Transform availability data
-      const availabilityMap: Record<string, string[]> = {};
+      const availabilityMap: Record<string, Record<string, string>> = {};
       availabilityData?.forEach((availability: PlayerAvailability) => {
         if (!availabilityMap[availability.match_id]) {
-          availabilityMap[availability.match_id] = [];
+          availabilityMap[availability.match_id] = {};
         }
-        availabilityMap[availability.match_id].push(availability.player_id);
+        availabilityMap[availability.match_id][availability.player_id] = availability.status;
       });
       setAvailabilities(availabilityMap);
 
@@ -64,6 +68,21 @@ export const AvailabilityView = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const getAvailabilityIcon = (matchId: string, playerId: string) => {
+    const status = availabilities[matchId]?.[playerId];
+    
+    switch (status) {
+      case 'available':
+        return <Check className="mx-auto text-green-500" />;
+      case 'not_available':
+        return <X className="mx-auto text-red-500" />;
+      case 'tentative':
+        return <MinusCircle className="mx-auto text-yellow-500" />;
+      default:
+        return <X className="mx-auto text-gray-300" />;
+    }
+  };
 
   return (
     <div className="p-6">
@@ -94,11 +113,7 @@ export const AvailabilityView = () => {
                 </TableCell>
                 {players.map((player) => (
                   <TableCell key={player.id} className="text-center">
-                    {availabilities[match.id]?.includes(player.id) ? (
-                      <Check className="mx-auto text-green-500" />
-                    ) : (
-                      <X className="mx-auto text-red-500" />
-                    )}
+                    {getAvailabilityIcon(match.id, player.id)}
                   </TableCell>
                 ))}
               </TableRow>
