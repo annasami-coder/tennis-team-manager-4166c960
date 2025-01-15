@@ -9,6 +9,72 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      matches: {
+        Row: {
+          created_at: string
+          date_time: string
+          id: string
+          location: string
+          match_type: Database["public"]["Enums"]["match_type"]
+          opponent: string
+        }
+        Insert: {
+          created_at?: string
+          date_time: string
+          id?: string
+          location: string
+          match_type: Database["public"]["Enums"]["match_type"]
+          opponent: string
+        }
+        Update: {
+          created_at?: string
+          date_time?: string
+          id?: string
+          location?: string
+          match_type?: Database["public"]["Enums"]["match_type"]
+          opponent?: string
+        }
+        Relationships: []
+      }
+      player_availability: {
+        Row: {
+          created_at: string
+          id: string
+          is_available: boolean
+          match_id: string
+          player_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_available: boolean
+          match_id: string
+          player_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          match_id?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_availability_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_availability_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       players: {
         Row: {
           cell_number: string
@@ -75,6 +141,7 @@ export type Database = {
       leagues_enum:
         | "Baytrees Adult League 40+ 4.0"
         | "Baytrees Adult League 18+ 4.0"
+      match_type: "home" | "away"
       rating_enum:
         | "2.5A"
         | "2.5C"

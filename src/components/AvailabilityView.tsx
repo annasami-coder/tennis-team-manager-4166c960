@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Match } from '@/types/match';
-import { Player } from '@/components/PlayerForm';
+import { Match, Player, PlayerAvailability } from '@/types/match';
 import { format } from 'date-fns';
 import {
   Table,
@@ -48,7 +47,7 @@ export const AvailabilityView = () => {
 
       // Transform availability data
       const availabilityMap: Record<string, string[]> = {};
-      availabilityData?.forEach(availability => {
+      availabilityData?.forEach((availability: PlayerAvailability) => {
         if (!availabilityMap[availability.match_id]) {
           availabilityMap[availability.match_id] = [];
         }
