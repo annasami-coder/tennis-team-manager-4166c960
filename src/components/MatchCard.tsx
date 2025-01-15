@@ -21,7 +21,7 @@ export const MatchCard = ({
   onDelete, 
   onEdit, 
   playerId, 
-  availabilityStatus = 'not_available',
+  availabilityStatus,
   onAvailabilityChange 
 }: MatchCardProps) => {
   const handleAvailabilityChange = async (value: string) => {
