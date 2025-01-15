@@ -14,25 +14,25 @@ export type Database = {
           cell_number: string
           created_at: string | null
           first_name: string
-          id: number
+          id: string
           last_name: string
-          rating: Database["public"]["Enums"]["usta_rating"]
+          usta_rating: Database["public"]["Enums"]["usta_rating"]
         }
         Insert: {
           cell_number: string
           created_at?: string | null
           first_name: string
-          id?: number
+          id?: string
           last_name: string
-          rating: Database["public"]["Enums"]["usta_rating"]
+          usta_rating: Database["public"]["Enums"]["usta_rating"]
         }
         Update: {
           cell_number?: string
           created_at?: string | null
           first_name?: string
-          id?: number
+          id?: string
           last_name?: string
-          rating?: Database["public"]["Enums"]["usta_rating"]
+          usta_rating?: Database["public"]["Enums"]["usta_rating"]
         }
         Relationships: []
       }

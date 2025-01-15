@@ -1,155 +1,134 @@
-import { useState, useEffect } from 'react';
-import { PlayerForm, type Player } from '@/components/PlayerForm';
-import { PlayerList } from '@/components/PlayerList';
-import { MatchForm } from '@/components/MatchForm';
-import { MatchList } from '@/components/MatchList';
-import { Match } from '@/types/match';
+import { useEffect, useState } from "react";
+import { PlayerForm, type Player } from "@/components/PlayerForm";
+import { PlayerList } from "@/components/PlayerList";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 
 const Index = () => {
-  // Initialize state with data from localStorage if it exists
-  const [players, setPlayers] = useState<Player[]>(() => {
-    const savedPlayers = localStorage.getItem('players');
-    return savedPlayers ? JSON.parse(savedPlayers) : [];
-  });
-
-  const [matches, setMatches] = useState<Match[]>(() => {
-    const savedMatches = localStorage.getItem('matches');
-    return savedMatches ? JSON.parse(savedMatches) : [];
-  });
-
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string>(() => {
-    const savedPlayerId = localStorage.getItem('selectedPlayerId');
-    return savedPlayerId || '';
-  });
-
-  // Save to localStorage whenever data changes
-  useEffect(() => {
-    localStorage.setItem('players', JSON.stringify(players));
-  }, [players]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem('matches', JSON.stringify(matches));
-  }, [matches]);
+    fetchPlayers();
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('selectedPlayerId', selectedPlayerId);
-  }, [selectedPlayerId]);
+  const fetchPlayers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("players")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-  const handleAddPlayer = (newPlayer: Player) => {
-    if (players.length >= 25) {
-      toast.error("Maximum team size (25) reached!");
-      return;
-    }
-    setPlayers([...players, newPlayer]);
-  };
-
-  const handleDeletePlayer = (id: string) => {
-    setPlayers(players.filter(player => player.id !== id));
-    if (selectedPlayerId === id) {
-      setSelectedPlayerId('');
-    }
-    toast.success("Player removed successfully!");
-  };
-
-  const handleEditPlayer = (id: string, updatedPlayer: Partial<Player>) => {
-    setPlayers(players.map(player => 
-      player.id === id ? { ...player, ...updatedPlayer } : player
-    ));
-    toast.success("Player updated successfully!");
-  };
-
-  const handleAddMatch = (newMatch: Match) => {
-    setMatches([...matches, newMatch]);
-  };
-
-  const handleDeleteMatch = (id: string) => {
-    setMatches(matches.filter(match => match.id !== id));
-    toast.success("Match removed successfully!");
-  };
-
-  const handleToggleAvailability = (matchId: string, playerId: string) => {
-    setMatches(matches.map(match => {
-      if (match.id === matchId) {
-        const availablePlayers = match.availablePlayers.includes(playerId)
-          ? match.availablePlayers.filter(id => id !== playerId)
-          : [...match.availablePlayers, playerId];
-        return { ...match, availablePlayers };
+      if (error) {
+        console.error("Error fetching players:", error);
+        toast.error("Failed to load players");
+        return;
       }
-      return match;
-    }));
-    
-    const isNowAvailable = matches
-      .find(m => m.id === matchId)
-      ?.availablePlayers.includes(playerId) === false;
-    
-    toast.success(
-      isNowAvailable 
-        ? "You're now marked as available for this match" 
-        : "You're now marked as unavailable for this match"
-    );
+
+      // Map database fields to frontend model
+      const mappedPlayers: Player[] = data.map(player => ({
+        id: player.id,
+        firstName: player.first_name,
+        lastName: player.last_name,
+        cellNumber: player.cell_number,
+        ustaRating: player.usta_rating
+      }));
+
+      setPlayers(mappedPlayers);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Failed to load players");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleAddPlayer = async (newPlayer: Player) => {
+    try {
+      const { error } = await supabase
+        .from("players")
+        .insert({
+          id: newPlayer.id,
+          first_name: newPlayer.firstName,
+          last_name: newPlayer.lastName,
+          cell_number: newPlayer.cellNumber,
+          usta_rating: newPlayer.ustaRating
+        });
+
+      if (error) {
+        console.error("Error adding player:", error);
+        toast.error("Failed to add player");
+        return;
+      }
+
+      await fetchPlayers(); // Refresh the list
+      toast.success("Player added successfully!");
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Failed to add player");
+    }
+  };
+
+  const handleDeletePlayer = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("players")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error deleting player:", error);
+        toast.error("Failed to delete player");
+        return;
+      }
+
+      await fetchPlayers(); // Refresh the list
+      toast.success("Player deleted successfully!");
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Failed to delete player");
+    }
+  };
+
+  const handleEditPlayer = async (id: string, updatedPlayer: Partial<Player>) => {
+    try {
+      const { error } = await supabase
+        .from("players")
+        .update({
+          first_name: updatedPlayer.firstName,
+          last_name: updatedPlayer.lastName,
+          cell_number: updatedPlayer.cellNumber,
+          usta_rating: updatedPlayer.ustaRating
+        })
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error updating player:", error);
+        toast.error("Failed to update player");
+        return;
+      }
+
+      await fetchPlayers(); // Refresh the list
+      toast.success("Player updated successfully!");
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Failed to update player");
+    }
+  };
+
+  if (isLoading) {
+    return <div className="text-center py-8">Loading players...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-tennis-blue">
-            Tennis Team Manager
-          </h1>
-          <Button asChild>
-            <Link to="/availability">View Availability Overview</Link>
-          </Button>
-        </div>
-
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Select Your Player Profile</h2>
-          <Select
-            value={selectedPlayerId}
-            onValueChange={setSelectedPlayerId}
-          >
-            <SelectTrigger className="w-full max-w-xs">
-              <SelectValue placeholder="Select your player profile" />
-            </SelectTrigger>
-            <SelectContent>
-              {players.map((player) => (
-                <SelectItem key={player.id} value={player.id}>
-                  {`${player.firstName} ${player.lastName}`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <PlayerForm onAddPlayer={handleAddPlayer} />
-            <PlayerList 
-              players={players} 
-              onDeletePlayer={handleDeletePlayer}
-              onEditPlayer={handleEditPlayer}
-            />
-          </div>
-          
-          <div>
-            <MatchForm onAddMatch={handleAddMatch} />
-            <MatchList 
-              matches={matches}
-              onDeleteMatch={handleDeleteMatch}
-              onToggleAvailability={handleToggleAvailability}
-              currentPlayerId={selectedPlayerId}
-            />
-          </div>
-        </div>
+        <PlayerForm onAddPlayer={handleAddPlayer} />
+        <PlayerList
+          players={players}
+          onDeletePlayer={handleDeletePlayer}
+          onEditPlayer={handleEditPlayer}
+        />
       </div>
     </div>
   );
