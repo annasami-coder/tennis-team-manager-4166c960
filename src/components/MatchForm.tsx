@@ -1,20 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { Match } from '@/types/match';
 
 interface MatchFormProps {
   onAddMatch: () => void;
+  matchToEdit?: Match;
+  onCancel?: () => void;
 }
 
-export const MatchForm = ({ onAddMatch }: MatchFormProps) => {
+export const MatchForm = ({ onAddMatch, matchToEdit, onCancel }: MatchFormProps) => {
   const [opponent, setOpponent] = useState("");
   const [isHome, setIsHome] = useState(true);
   const [location, setLocation] = useState("");
   const [dateTime, setDateTime] = useState("");
+
+  useEffect(() => {
+    if (matchToEdit) {
+      setOpponent(matchToEdit.opponent);
+      setIsHome(matchToEdit.match_type === 'home');
+      setLocation(matchToEdit.location);
+      setDateTime(matchToEdit.date_time);
+    }
+  }, [matchToEdit]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,19 +37,34 @@ export const MatchForm = ({ onAddMatch }: MatchFormProps) => {
     }
 
     try {
-      const { error } = await supabase
-        .from('matches')
-        .insert({
-          opponent,
-          match_type: isHome ? 'home' : 'away',
-          location,
-          date_time: dateTime
-        });
+      if (matchToEdit) {
+        const { error } = await supabase
+          .from('matches')
+          .update({
+            opponent,
+            match_type: isHome ? 'home' : 'away',
+            location,
+            date_time: dateTime
+          })
+          .eq('id', matchToEdit.id);
 
-      if (error) throw error;
+        if (error) throw error;
+        toast.success("Match updated successfully!");
+      } else {
+        const { error } = await supabase
+          .from('matches')
+          .insert({
+            opponent,
+            match_type: isHome ? 'home' : 'away',
+            location,
+            date_time: dateTime
+          });
 
-      toast.success("Match added successfully!");
-      onAddMatch(); // Call the callback to refresh the list
+        if (error) throw error;
+        toast.success("Match added successfully!");
+      }
+
+      onAddMatch();
       
       // Reset form
       setOpponent("");
@@ -45,14 +72,16 @@ export const MatchForm = ({ onAddMatch }: MatchFormProps) => {
       setDateTime("");
       setIsHome(true);
     } catch (error) {
-      console.error('Error adding match:', error);
-      toast.error("Failed to add match");
+      console.error('Error saving match:', error);
+      toast.error(matchToEdit ? "Failed to update match" : "Failed to add match");
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-tennis-blue mb-6">Add New Match</h2>
+      <h2 className="text-2xl font-bold text-tennis-blue mb-6">
+        {matchToEdit ? "Edit Match" : "Add New Match"}
+      </h2>
       
       <div className="space-y-2">
         <label className="text-sm font-medium">Opponent Team</label>
@@ -93,9 +122,16 @@ export const MatchForm = ({ onAddMatch }: MatchFormProps) => {
         />
       </div>
 
-      <Button type="submit" className="w-full bg-tennis-blue hover:bg-blue-700 text-white">
-        Add Match
-      </Button>
+      <div className="flex gap-2">
+        <Button type="submit" className="flex-1 bg-tennis-blue hover:bg-blue-700 text-white">
+          {matchToEdit ? "Update Match" : "Add Match"}
+        </Button>
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+            Cancel
+          </Button>
+        )}
+      </div>
     </form>
   );
 };

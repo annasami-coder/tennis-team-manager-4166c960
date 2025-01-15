@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Link } from "react-router-dom";
+import { MatchForm } from './MatchForm';
 
 interface MatchListProps {
   currentPlayerId?: string;
@@ -17,6 +18,7 @@ export const MatchList = ({ currentPlayerId, limit = 3 }: MatchListProps) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [availabilities, setAvailabilities] = useState<PlayerAvailability[]>([]);
   const [showAll, setShowAll] = useState(false);
+  const [matchToEdit, setMatchToEdit] = useState<Match | undefined>();
 
   const fetchMatches = async () => {
     try {
@@ -78,6 +80,10 @@ export const MatchList = ({ currentPlayerId, limit = 3 }: MatchListProps) => {
     }
   };
 
+  const handleEditMatch = (match: Match) => {
+    setMatchToEdit(match);
+  };
+
   const displayedMatches = showAll ? matches : matches.slice(0, limit);
 
   return (
@@ -88,6 +94,20 @@ export const MatchList = ({ currentPlayerId, limit = 3 }: MatchListProps) => {
           <Button variant="outline">View Availability</Button>
         </Link>
       </div>
+
+      {matchToEdit && (
+        <div className="mb-6">
+          <MatchForm 
+            matchToEdit={matchToEdit} 
+            onAddMatch={() => {
+              setMatchToEdit(undefined);
+              fetchMatches();
+            }}
+            onCancel={() => setMatchToEdit(undefined)}
+          />
+        </div>
+      )}
+
       <ScrollArea className="h-[500px] w-full rounded-md border">
         <div className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -96,6 +116,7 @@ export const MatchList = ({ currentPlayerId, limit = 3 }: MatchListProps) => {
                 key={match.id} 
                 match={match} 
                 onDelete={handleDeleteMatch}
+                onEdit={handleEditMatch}
                 playerId={currentPlayerId}
                 isAvailable={availabilities.some(a => a.match_id === match.id && a.is_available)}
                 onAvailabilityChange={fetchAvailabilities}
