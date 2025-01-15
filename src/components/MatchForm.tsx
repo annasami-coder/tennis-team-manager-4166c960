@@ -37,7 +37,7 @@ export const MatchForm = ({ onAddMatch }: MatchFormProps) => {
       if (error) throw error;
 
       toast.success("Match added successfully!");
-      onAddMatch();
+      onAddMatch(); // Call the callback to refresh the list
       
       // Reset form
       setOpponent("");

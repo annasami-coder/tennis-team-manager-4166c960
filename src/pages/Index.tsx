@@ -14,6 +14,7 @@ type USTARating = Database["public"]["Enums"]["usta_rating"];
 const Index = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshMatches, setRefreshMatches] = useState(0);
 
   useEffect(() => {
     fetchPlayers();
@@ -122,6 +123,10 @@ const Index = () => {
     }
   };
 
+  const handleAddMatch = () => {
+    setRefreshMatches(prev => prev + 1);
+  };
+
   if (isLoading) {
     return <div className="text-center py-8">Loading players...</div>;
   }
@@ -136,8 +141,8 @@ const Index = () => {
               <Link to="/availability">View Availability</Link>
             </Button>
           </div>
-          <MatchForm onAddMatch={() => {}} />
-          <MatchList />
+          <MatchForm onAddMatch={handleAddMatch} />
+          <MatchList key={refreshMatches} />
         </div>
 
         <div>
