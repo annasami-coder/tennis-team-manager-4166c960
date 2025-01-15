@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, Edit2, Check, X } from "lucide-react";
+import { Database } from "@/integrations/supabase/types";
+
+type USTARating = Database["public"]["Enums"]["usta_rating"];
 
 interface PlayerCardProps {
   player: Player;
@@ -12,10 +15,9 @@ interface PlayerCardProps {
   onEdit: (id: string, updatedPlayer: Partial<Player>) => void;
 }
 
-const USTA_RATINGS = [
-  "2.5C", "2.5S", "2.5A", "3.0C", "3.0S", "3.0A", 
-  "3.5C", "3.5S", "3.5A", "4.0S", "4.0A", "4.0C", 
-  "4.5S", "4.5A", "4.5C", "5.0C", "5.0A", "5.0S"
+const USTA_RATINGS: USTARating[] = [
+  "2.5C", "3.0S", "3.0A", "3.0C", "3.5S", "3.5A", 
+  "3.5C", "4.0S", "4.0A", "4.0C", "4.5A", "4.5C", "4.5S"
 ];
 
 export const PlayerCard = ({ player, onDelete, onEdit }: PlayerCardProps) => {
@@ -23,7 +25,7 @@ export const PlayerCard = ({ player, onDelete, onEdit }: PlayerCardProps) => {
   const [editedFirstName, setEditedFirstName] = useState(player.firstName);
   const [editedLastName, setEditedLastName] = useState(player.lastName);
   const [editedCellNumber, setEditedCellNumber] = useState(player.cellNumber);
-  const [editedUstaRating, setEditedUstaRating] = useState(player.ustaRating);
+  const [editedUstaRating, setEditedUstaRating] = useState<USTARating>(player.ustaRating as USTARating);
 
   const handleSave = () => {
     onEdit(player.id, {
@@ -39,7 +41,7 @@ export const PlayerCard = ({ player, onDelete, onEdit }: PlayerCardProps) => {
     setEditedFirstName(player.firstName);
     setEditedLastName(player.lastName);
     setEditedCellNumber(player.cellNumber);
-    setEditedUstaRating(player.ustaRating);
+    setEditedUstaRating(player.ustaRating as USTARating);
     setIsEditing(false);
   };
 
@@ -67,7 +69,10 @@ export const PlayerCard = ({ player, onDelete, onEdit }: PlayerCardProps) => {
             placeholder="Cell Number"
             type="tel"
           />
-          <Select value={editedUstaRating} onValueChange={setEditedUstaRating}>
+          <Select 
+            value={editedUstaRating} 
+            onValueChange={(value: USTARating) => setEditedUstaRating(value)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select Rating" />
             </SelectTrigger>
