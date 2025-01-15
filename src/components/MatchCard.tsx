@@ -1,4 +1,4 @@
-import { Match, PlayerAvailability } from '@/types/match';
+import { Match } from '@/types/match';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Trash2 } from "lucide-react";
