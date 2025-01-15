@@ -108,40 +108,38 @@ export const MatchList = ({ currentPlayerId, limit = 3 }: MatchListProps) => {
         </div>
       )}
 
-      <ScrollArea className="h-[500px] w-full rounded-md border">
-        <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {displayedMatches.map((match) => (
-              <MatchCard 
-                key={match.id} 
-                match={match} 
-                onDelete={handleDeleteMatch}
-                onEdit={handleEditMatch}
-                playerId={currentPlayerId}
-                isAvailable={availabilities.some(a => a.match_id === match.id && a.is_available)}
-                onAvailabilityChange={fetchAvailabilities}
-              />
-            ))}
-          </div>
-          {matches.length > limit && (
-            <Button 
-              onClick={() => setShowAll(!showAll)} 
-              className="mt-4 w-full flex items-center justify-center gap-2"
-              variant="outline"
-            >
-              {showAll ? (
-                <>
-                  Show Less <ChevronUp className="h-4 w-4" />
-                </>
-              ) : (
-                <>
-                  Show {matches.length - limit} More Matches <ChevronDown className="h-4 w-4" />
-                </>
-              )}
-            </Button>
-          )}
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {displayedMatches.map((match) => (
+            <MatchCard 
+              key={match.id} 
+              match={match} 
+              onDelete={handleDeleteMatch}
+              onEdit={handleEditMatch}
+              playerId={currentPlayerId}
+              isAvailable={availabilities.some(a => a.match_id === match.id && a.is_available)}
+              onAvailabilityChange={fetchAvailabilities}
+            />
+          ))}
         </div>
-      </ScrollArea>
+        {matches.length > limit && (
+          <Button 
+            onClick={() => setShowAll(!showAll)} 
+            className="w-full flex items-center justify-center gap-2 mt-4"
+            variant="outline"
+          >
+            {showAll ? (
+              <>
+                Show Less <ChevronUp className="h-4 w-4" />
+              </>
+            ) : (
+              <>
+                Show {matches.length - limit} More {matches.length - limit === 1 ? 'Match' : 'Matches'} <ChevronDown className="h-4 w-4" />
+              </>
+            )}
+          </Button>
+        )}
+      </div>
       {matches.length === 0 && (
         <div className="text-center text-gray-500 py-8">
           No matches scheduled yet. Add your first match above!
