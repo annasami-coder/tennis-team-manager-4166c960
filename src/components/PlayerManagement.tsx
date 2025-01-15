@@ -107,7 +107,7 @@ export const PlayerManagement = () => {
       <PlayerList
         players={players}
         onDeletePlayer={handleDeletePlayer}
-        onEdit={handleEditPlayer}
+        onEditPlayer={handleEditPlayer}
       />
     </div>
   );
