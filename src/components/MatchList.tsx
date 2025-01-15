@@ -24,6 +24,7 @@ export const MatchList = ({ currentPlayerId, limit = 3 }: MatchListProps) => {
         .order('date_time', { ascending: true });
 
       if (error) throw error;
+      console.log('Fetched matches:', data);
       setMatches(data || []);
     } catch (error) {
       console.error('Error fetching matches:', error);
