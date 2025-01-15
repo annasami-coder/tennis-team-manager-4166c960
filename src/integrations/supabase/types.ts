@@ -40,23 +40,23 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          is_available: boolean
           match_id: string
           player_id: string
+          status: Database["public"]["Enums"]["availability_status"]
         }
         Insert: {
           created_at?: string
           id?: string
-          is_available: boolean
           match_id: string
           player_id: string
+          status: Database["public"]["Enums"]["availability_status"]
         }
         Update: {
           created_at?: string
           id?: string
-          is_available?: boolean
           match_id?: string
           player_id?: string
+          status?: Database["public"]["Enums"]["availability_status"]
         }
         Relationships: [
           {
@@ -137,6 +137,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      availability_status: "available" | "not_available" | "tentative"
       league_enum: "league A" | "league B"
       leagues_enum:
         | "Baytrees Adult League 40+ 4.0"

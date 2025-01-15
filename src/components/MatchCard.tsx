@@ -12,11 +12,18 @@ interface MatchCardProps {
   onDelete: (id: string) => void;
   onEdit: (match: Match) => void;
   playerId?: string;
-  isAvailable?: boolean;
+  availabilityStatus?: 'available' | 'not_available' | 'tentative';
   onAvailabilityChange?: () => void;
 }
 
-export const MatchCard = ({ match, onDelete, onEdit, playerId, isAvailable, onAvailabilityChange }: MatchCardProps) => {
+export const MatchCard = ({ 
+  match, 
+  onDelete, 
+  onEdit, 
+  playerId, 
+  availabilityStatus = 'not_available',
+  onAvailabilityChange 
+}: MatchCardProps) => {
   const handleAvailabilityChange = async (value: string) => {
     if (!playerId) {
       toast.error("Please select a player first");
@@ -37,7 +44,7 @@ export const MatchCard = ({ match, onDelete, onEdit, playerId, isAvailable, onAv
         .insert({
           player_id: playerId,
           match_id: match.id,
-          is_available: value === 'yes'
+          status: value as 'available' | 'not_available' | 'tentative'
         });
 
       if (error) throw error;
@@ -99,15 +106,16 @@ export const MatchCard = ({ match, onDelete, onEdit, playerId, isAvailable, onAv
           {playerId && (
             <div className="space-y-2">
               <Select
-                value={isAvailable ? "yes" : "no"}
+                value={availabilityStatus}
                 onValueChange={handleAvailabilityChange}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Set availability" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="yes">Available</SelectItem>
-                  <SelectItem value="no">Not Available</SelectItem>
+                  <SelectItem value="available">Available</SelectItem>
+                  <SelectItem value="tentative">Tentative</SelectItem>
+                  <SelectItem value="not_available">Not Available</SelectItem>
                 </SelectContent>
               </Select>
             </div>

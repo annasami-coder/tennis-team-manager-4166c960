@@ -13,7 +13,7 @@ export type PlayerAvailability = {
   id: string;
   player_id: string;
   match_id: string;
-  is_available: boolean;
+  status: 'available' | 'not_available' | 'tentative';
   created_at?: string;
 };
 

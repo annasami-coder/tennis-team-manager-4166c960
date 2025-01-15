@@ -126,7 +126,7 @@ export const MatchList = ({ currentPlayerId }: MatchListProps) => {
                     onDelete={handleDeleteMatch}
                     onEdit={handleEditMatch}
                     playerId={currentPlayerId}
-                    isAvailable={availabilities.some(a => a.match_id === match.id && a.is_available)}
+                    availabilityStatus={availabilities.find(a => a.match_id === match.id)?.status || 'not_available'}
                     onAvailabilityChange={fetchAvailabilities}
                   />
                 </CarouselItem>
