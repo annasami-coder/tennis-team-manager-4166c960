@@ -8,11 +8,13 @@ import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type USTARating = Database["public"]["Enums"]["usta_rating"];
 
 const Index = () => {
   const [players, setPlayers] = useState<Player[]>([]);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [refreshMatches, setRefreshMatches] = useState(0);
 
@@ -33,7 +35,6 @@ const Index = () => {
         return;
       }
 
-      // Map database fields to frontend model
       const mappedPlayers: Player[] = data.map(player => ({
         id: player.id,
         firstName: player.first_name,
@@ -68,7 +69,7 @@ const Index = () => {
         return;
       }
 
-      await fetchPlayers(); // Refresh the list
+      await fetchPlayers();
       toast.success("Player added successfully!");
     } catch (error) {
       console.error("Error:", error);
@@ -89,7 +90,7 @@ const Index = () => {
         return;
       }
 
-      await fetchPlayers(); // Refresh the list
+      await fetchPlayers();
       toast.success("Player deleted successfully!");
     } catch (error) {
       console.error("Error:", error);
@@ -115,7 +116,7 @@ const Index = () => {
         return;
       }
 
-      await fetchPlayers(); // Refresh the list
+      await fetchPlayers();
       toast.success("Player updated successfully!");
     } catch (error) {
       console.error("Error:", error);
@@ -141,8 +142,25 @@ const Index = () => {
               <Link to="/availability">View Availability</Link>
             </Button>
           </div>
+
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold mb-2">Select Player</h2>
+            <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
+              <SelectTrigger className="w-full md:w-[300px]">
+                <SelectValue placeholder="Select a player" />
+              </SelectTrigger>
+              <SelectContent>
+                {players.map((player) => (
+                  <SelectItem key={player.id} value={player.id}>
+                    {player.firstName} {player.lastName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <MatchForm onAddMatch={handleAddMatch} />
-          <MatchList key={refreshMatches} />
+          <MatchList key={refreshMatches} currentPlayerId={selectedPlayerId} />
         </div>
 
         <div>

@@ -6,7 +6,6 @@ import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
 
 interface MatchCardProps {
   match: Match;
@@ -17,37 +16,8 @@ interface MatchCardProps {
 }
 
 export const MatchCard = ({ match, onDelete, playerId, isAvailable, onAvailabilityChange }: MatchCardProps) => {
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [selectedPlayer, setSelectedPlayer] = useState<string>("");
-  const [availability, setAvailability] = useState<string>("no");
-
-  useEffect(() => {
-    fetchPlayers();
-  }, []);
-
-  useEffect(() => {
-    if (playerId) {
-      setSelectedPlayer(playerId);
-      setAvailability(isAvailable ? "yes" : "no");
-    }
-  }, [playerId, isAvailable]);
-
-  const fetchPlayers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('players')
-        .select('*');
-
-      if (error) throw error;
-      setPlayers(data || []);
-    } catch (error) {
-      console.error('Error fetching players:', error);
-      toast.error("Failed to load players");
-    }
-  };
-
   const handleAvailabilityChange = async (value: string) => {
-    if (!selectedPlayer) {
+    if (!playerId) {
       toast.error("Please select a player first");
       return;
     }
@@ -57,20 +27,19 @@ export const MatchCard = ({ match, onDelete, playerId, isAvailable, onAvailabili
       await supabase
         .from('player_availability')
         .delete()
-        .eq('player_id', selectedPlayer)
+        .eq('player_id', playerId)
         .eq('match_id', match.id);
 
       // Then insert the new availability record
       const { error } = await supabase
         .from('player_availability')
         .insert({
-          player_id: selectedPlayer,
+          player_id: playerId,
           match_id: match.id,
           is_available: value === 'yes'
         });
 
       if (error) throw error;
-      setAvailability(value);
       toast.success("Availability updated successfully");
       if (onAvailabilityChange) {
         onAvailabilityChange();
@@ -116,37 +85,22 @@ export const MatchCard = ({ match, onDelete, playerId, isAvailable, onAvailabili
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Select
-              value={selectedPlayer}
-              onValueChange={(value) => setSelectedPlayer(value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select player" />
-              </SelectTrigger>
-              <SelectContent>
-                {players.map((player) => (
-                  <SelectItem key={player.id} value={player.id}>
-                    {player.first_name} {player.last_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={availability}
-              onValueChange={handleAvailabilityChange}
-              disabled={!selectedPlayer}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Set availability" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="yes">Available</SelectItem>
-                <SelectItem value="no">Not Available</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {playerId && (
+            <div className="space-y-2">
+              <Select
+                value={isAvailable ? "yes" : "no"}
+                onValueChange={handleAvailabilityChange}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Set availability" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes">Available</SelectItem>
+                  <SelectItem value="no">Not Available</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
