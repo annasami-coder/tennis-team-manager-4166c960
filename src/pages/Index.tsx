@@ -5,18 +5,15 @@ import { MatchForm } from "@/components/MatchForm";
 import { MatchList } from "@/components/MatchList";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-type USTARating = Database["public"]["Enums"]["usta_rating"];
 
 const Index = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
+  const [showPlayerForm, setShowPlayerForm] = useState(false);
+  const [showMatchForm, setShowMatchForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [refreshMatches, setRefreshMatches] = useState(0);
 
   useEffect(() => {
     fetchPlayers();
@@ -29,11 +26,7 @@ const Index = () => {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching players:", error);
-        toast.error("Failed to load players");
-        return;
-      }
+      if (error) throw error;
 
       const mappedPlayers: Player[] = data.map(player => ({
         id: player.id,
@@ -60,16 +53,13 @@ const Index = () => {
           first_name: newPlayer.firstName,
           last_name: newPlayer.lastName,
           cell_number: newPlayer.cellNumber,
-          usta_rating: newPlayer.ustaRating as USTARating
+          usta_rating: newPlayer.ustaRating
         });
 
-      if (error) {
-        console.error("Error adding player:", error);
-        toast.error("Failed to add player");
-        return;
-      }
+      if (error) throw error;
 
       await fetchPlayers();
+      setShowPlayerForm(false); // Hide form after successful addition
       toast.success("Player added successfully!");
     } catch (error) {
       console.error("Error:", error);
@@ -84,11 +74,7 @@ const Index = () => {
         .delete()
         .eq("id", id);
 
-      if (error) {
-        console.error("Error deleting player:", error);
-        toast.error("Failed to delete player");
-        return;
-      }
+      if (error) throw error;
 
       await fetchPlayers();
       toast.success("Player deleted successfully!");
@@ -106,15 +92,11 @@ const Index = () => {
           first_name: updatedPlayer.firstName,
           last_name: updatedPlayer.lastName,
           cell_number: updatedPlayer.cellNumber,
-          usta_rating: updatedPlayer.ustaRating as USTARating
+          usta_rating: updatedPlayer.ustaRating
         })
         .eq("id", id);
 
-      if (error) {
-        console.error("Error updating player:", error);
-        toast.error("Failed to update player");
-        return;
-      }
+      if (error) throw error;
 
       await fetchPlayers();
       toast.success("Player updated successfully!");
@@ -125,7 +107,7 @@ const Index = () => {
   };
 
   const handleAddMatch = () => {
-    setRefreshMatches(prev => prev + 1);
+    setShowMatchForm(false); // Hide form after match is added
   };
 
   if (isLoading) {
@@ -138,9 +120,6 @@ const Index = () => {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-tennis-blue">Match Management</h1>
-            <Button asChild>
-              <Link to="/availability">View Availability</Link>
-            </Button>
           </div>
 
           <div className="mb-8">
@@ -159,13 +138,26 @@ const Index = () => {
             </Select>
           </div>
 
-          <MatchForm onAddMatch={handleAddMatch} />
-          <MatchList key={refreshMatches} currentPlayerId={selectedPlayerId} />
+          <Button 
+            onClick={() => setShowMatchForm(!showMatchForm)} 
+            className="mb-4"
+          >
+            {showMatchForm ? "Cancel" : "Add New Match"}
+          </Button>
+
+          {showMatchForm && <MatchForm onAddMatch={handleAddMatch} />}
+          <MatchList currentPlayerId={selectedPlayerId} />
         </div>
 
         <div>
-          <h1 className="text-3xl font-bold text-tennis-blue mb-6">Player Management</h1>
-          <PlayerForm onAddPlayer={handleAddPlayer} />
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold text-tennis-blue">Player Management</h1>
+            <Button onClick={() => setShowPlayerForm(!showPlayerForm)}>
+              {showPlayerForm ? "Cancel" : "Add New Player"}
+            </Button>
+          </div>
+
+          {showPlayerForm && <PlayerForm onAddPlayer={handleAddPlayer} />}
           <PlayerList
             players={players}
             onDeletePlayer={handleDeletePlayer}
