@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MatchFormProps {
-  onAddMatch: (match: Match) => void;
+  onAddMatch: () => void;
 }
 
 export const MatchForm = ({ onAddMatch }: MatchFormProps) => {
@@ -16,7 +17,7 @@ export const MatchForm = ({ onAddMatch }: MatchFormProps) => {
   const [location, setLocation] = useState("");
   const [dateTime, setDateTime] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!opponent || !location || !dateTime) {
@@ -24,23 +25,30 @@ export const MatchForm = ({ onAddMatch }: MatchFormProps) => {
       return;
     }
 
-    const newMatch: Match = {
-      id: crypto.randomUUID(),
-      opponent,
-      isHome,
-      location,
-      dateTime,
-      availablePlayers: []
-    };
+    try {
+      const { error } = await supabase
+        .from('matches')
+        .insert({
+          opponent,
+          match_type: isHome ? 'home' : 'away',
+          location,
+          date_time: dateTime
+        });
 
-    onAddMatch(newMatch);
-    toast.success("Match added successfully!");
-    
-    // Reset form
-    setOpponent("");
-    setLocation("");
-    setDateTime("");
-    setIsHome(true);
+      if (error) throw error;
+
+      toast.success("Match added successfully!");
+      onAddMatch();
+      
+      // Reset form
+      setOpponent("");
+      setLocation("");
+      setDateTime("");
+      setIsHome(true);
+    } catch (error) {
+      console.error('Error adding match:', error);
+      toast.error("Failed to add match");
+    }
   };
 
   return (
