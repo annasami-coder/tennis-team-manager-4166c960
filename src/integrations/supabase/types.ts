@@ -213,6 +213,12 @@ export type Database = {
   }
 }
 
+export interface Team {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
 type PublicSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<

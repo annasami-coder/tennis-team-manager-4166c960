@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { Team } from "@/integrations/supabase/types";
 
 export const TeamNameForm = () => {
   const [teamName, setTeamName] = useState("");
@@ -73,7 +74,7 @@ export const TeamNameForm = () => {
 
   return (
     <div className="mb-8">
-      <h2 className="text-2xl font-bold text-tennis-blue mb-4">Team Settings</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-4">Team Settings</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="teamName" className="block text-sm font-medium text-gray-700 mb-1">
