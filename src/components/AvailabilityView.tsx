@@ -84,6 +84,25 @@ export const AvailabilityView = () => {
     }
   };
 
+  const getAvailabilityCounts = (matchId: string) => {
+    const counts = {
+      available: 0,
+      not_available: 0,
+      tentative: 0,
+      not_selected: 0
+    };
+
+    players.forEach(player => {
+      const status = availabilities[matchId]?.[player.id];
+      if (status === 'available') counts.available++;
+      else if (status === 'not_available') counts.not_available++;
+      else if (status === 'tentative') counts.tentative++;
+      else counts.not_selected++;
+    });
+
+    return counts;
+  };
+
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-6">Player Availability</h2>
@@ -100,24 +119,33 @@ export const AvailabilityView = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {matches.map((match) => (
-              <TableRow key={match.id}>
-                <TableCell className="font-medium">
-                  <div>vs {match.opponent}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {format(new Date(match.date_time), "PPP")} at {format(new Date(match.date_time), "p")}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {match.match_type === 'home' ? "Home" : "Away"} - {match.location}
-                  </div>
-                </TableCell>
-                {players.map((player) => (
-                  <TableCell key={player.id} className="text-center">
-                    {getAvailabilityIcon(match.id, player.id)}
+            {matches.map((match) => {
+              const counts = getAvailabilityCounts(match.id);
+              return (
+                <TableRow key={match.id}>
+                  <TableCell className="font-medium">
+                    <div>vs {match.opponent}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {format(new Date(match.date_time), "PPP")} at {format(new Date(match.date_time), "p")}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {match.match_type === 'home' ? "Home" : "Away"} - {match.location}
+                    </div>
+                    <div className="mt-2 text-sm">
+                      <span className="text-green-500">Available: {counts.available}</span> •{' '}
+                      <span className="text-red-500">Not Available: {counts.not_available}</span> •{' '}
+                      <span className="text-yellow-500">Tentative: {counts.tentative}</span> •{' '}
+                      <span className="text-gray-500">Not Selected: {counts.not_selected}</span>
+                    </div>
                   </TableCell>
-                ))}
-              </TableRow>
-            ))}
+                  {players.map((player) => (
+                    <TableCell key={player.id} className="text-center">
+                      {getAvailabilityIcon(match.id, player.id)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
