@@ -8,6 +8,7 @@ import { Trash2, Edit2, Check, X } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 
 type USTARating = Database["public"]["Enums"]["usta_rating"];
+type TeamRole = Database["public"]["Enums"]["team_role"];
 
 interface PlayerCardProps {
   player: Player;
@@ -20,19 +21,23 @@ const USTA_RATINGS: USTARating[] = [
   "3.5C", "4.0S", "4.0A", "4.0C", "4.5A", "4.5C", "4.5S"
 ];
 
+const TEAM_ROLES: TeamRole[] = ["player", "captain", "co_captain"];
+
 export const PlayerCard = ({ player, onDelete, onEdit }: PlayerCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedFirstName, setEditedFirstName] = useState(player.firstName);
   const [editedLastName, setEditedLastName] = useState(player.lastName);
   const [editedCellNumber, setEditedCellNumber] = useState(player.cellNumber);
   const [editedUstaRating, setEditedUstaRating] = useState<USTARating>(player.ustaRating as USTARating);
+  const [editedRole, setEditedRole] = useState<TeamRole>(player.role);
 
   const handleSave = () => {
     onEdit(player.id, {
       firstName: editedFirstName,
       lastName: editedLastName,
       cellNumber: editedCellNumber,
-      ustaRating: editedUstaRating
+      ustaRating: editedUstaRating,
+      role: editedRole
     });
     setIsEditing(false);
   };
@@ -42,7 +47,19 @@ export const PlayerCard = ({ player, onDelete, onEdit }: PlayerCardProps) => {
     setEditedLastName(player.lastName);
     setEditedCellNumber(player.cellNumber);
     setEditedUstaRating(player.ustaRating as USTARating);
+    setEditedRole(player.role);
     setIsEditing(false);
+  };
+
+  const getRoleBadgeColor = (role: TeamRole) => {
+    switch (role) {
+      case "captain":
+        return "bg-blue-500";
+      case "co_captain":
+        return "bg-green-500";
+      default:
+        return "bg-gray-500";
+    }
   };
 
   if (isEditing) {
@@ -84,6 +101,21 @@ export const PlayerCard = ({ player, onDelete, onEdit }: PlayerCardProps) => {
               ))}
             </SelectContent>
           </Select>
+          <Select 
+            value={editedRole} 
+            onValueChange={(value: TeamRole) => setEditedRole(value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Role" />
+            </SelectTrigger>
+            <SelectContent>
+              {TEAM_ROLES.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {role === "co_captain" ? "Co-Captain" : role.charAt(0).toUpperCase() + role.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="flex justify-end space-x-2">
             <Button
               variant="ghost"
@@ -110,9 +142,14 @@ export const PlayerCard = ({ player, onDelete, onEdit }: PlayerCardProps) => {
   return (
     <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <h3 className="font-bold text-lg">
-          {player.firstName} {player.lastName}
-        </h3>
+        <div>
+          <h3 className="font-bold text-lg">
+            {player.firstName} {player.lastName}
+          </h3>
+          <span className={`text-xs px-2 py-1 rounded text-white ${getRoleBadgeColor(player.role)}`}>
+            {player.role === "co_captain" ? "Co-Captain" : player.role.charAt(0).toUpperCase() + player.role.slice(1)}
+          </span>
+        </div>
         <div className="flex space-x-2">
           <Button
             variant="ghost"

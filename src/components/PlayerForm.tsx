@@ -1,6 +1,7 @@
 import { Database } from "@/integrations/supabase/types";
 
 type USTARating = Database["public"]["Enums"]["usta_rating"];
+type TeamRole = Database["public"]["Enums"]["team_role"];
 
 export type Player = {
   id: string;
@@ -8,10 +9,14 @@ export type Player = {
   lastName: string;
   cellNumber: string;
   ustaRating: USTARating;
+  role: TeamRole;
 };
 
 import React, { useState } from "react";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 type PlayerFormProps = {
   onAddPlayer: (player: Player) => void;
@@ -21,7 +26,8 @@ export const PlayerForm: React.FC<PlayerFormProps> = ({ onAddPlayer }) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [cellNumber, setCellNumber] = useState("");
-  const [ustaRating, setUstaRating] = useState<USTARating>("2.5C"); // Default value
+  const [ustaRating, setUstaRating] = useState<USTARating>("2.5C");
+  const [role, setRole] = useState<TeamRole>("player");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,63 +37,71 @@ export const PlayerForm: React.FC<PlayerFormProps> = ({ onAddPlayer }) => {
       lastName,
       cellNumber,
       ustaRating,
+      role,
     };
     onAddPlayer(newPlayer);
     setFirstName("");
     setLastName("");
     setCellNumber("");
-    setUstaRating("2.5C"); // Reset to default
+    setUstaRating("2.5C");
+    setRole("player");
     toast.success("Player added successfully!");
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-4">
+    <form onSubmit={handleSubmit} className="mb-4 space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <input
+        <Input
           type="text"
           placeholder="First Name"
           value={firstName}
           onChange={(e) => setFirstName(e.target.value)}
           required
-          className="border p-2"
         />
-        <input
+        <Input
           type="text"
           placeholder="Last Name"
           value={lastName}
           onChange={(e) => setLastName(e.target.value)}
           required
-          className="border p-2"
         />
-        <input
+        <Input
           type="text"
           placeholder="Cell Number"
           value={cellNumber}
           onChange={(e) => setCellNumber(e.target.value)}
           required
-          className="border p-2"
         />
-        <select
-          value={ustaRating}
-          onChange={(e) => setUstaRating(e.target.value as USTARating)}
-          className="border p-2"
-        >
-          <option value="2.5C">2.5C</option>
-          <option value="3.0A">3.0A</option>
-          <option value="3.0C">3.0C</option>
-          <option value="3.5A">3.5A</option>
-          <option value="3.5C">3.5C</option>
-          <option value="4.0A">4.0A</option>
-          <option value="4.0C">4.0C</option>
-          <option value="4.5A">4.5A</option>
-          <option value="4.5C">4.5C</option>
-          <option value="5.0A">5.0A</option>
-          <option value="5.0C">5.0C</option>
-        </select>
+        <Select value={ustaRating} onValueChange={(value: USTARating) => setUstaRating(value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Rating" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="2.5C">2.5C</SelectItem>
+            <SelectItem value="3.0A">3.0A</SelectItem>
+            <SelectItem value="3.0C">3.0C</SelectItem>
+            <SelectItem value="3.5A">3.5A</SelectItem>
+            <SelectItem value="3.5C">3.5C</SelectItem>
+            <SelectItem value="4.0A">4.0A</SelectItem>
+            <SelectItem value="4.0C">4.0C</SelectItem>
+            <SelectItem value="4.5A">4.5A</SelectItem>
+            <SelectItem value="4.5C">4.5C</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={role} onValueChange={(value: TeamRole) => setRole(value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="player">Player</SelectItem>
+            <SelectItem value="captain">Captain</SelectItem>
+            <SelectItem value="co_captain">Co-Captain</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-      <button type="submit" className="mt-4 bg-blue-500 text-white p-2">
+      <Button type="submit" className="w-full">
         Add Player
-      </button>
+      </Button>
     </form>
   );
 };

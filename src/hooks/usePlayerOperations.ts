@@ -20,7 +20,8 @@ export const usePlayerOperations = () => {
         firstName: player.first_name,
         lastName: player.last_name,
         cellNumber: player.cell_number,
-        ustaRating: player.usta_rating
+        ustaRating: player.usta_rating,
+        role: player.role
       }));
 
       setPlayers(mappedPlayers);
@@ -38,7 +39,8 @@ export const usePlayerOperations = () => {
           first_name: newPlayer.firstName,
           last_name: newPlayer.lastName,
           cell_number: newPlayer.cellNumber,
-          usta_rating: newPlayer.ustaRating
+          usta_rating: newPlayer.ustaRating,
+          role: newPlayer.role
         });
 
       if (error) throw error;
@@ -78,7 +80,8 @@ export const usePlayerOperations = () => {
           first_name: updatedPlayer.firstName,
           last_name: updatedPlayer.lastName,
           cell_number: updatedPlayer.cellNumber,
-          usta_rating: updatedPlayer.ustaRating
+          usta_rating: updatedPlayer.ustaRating,
+          role: updatedPlayer.role
         })
         .eq("id", id);
 
