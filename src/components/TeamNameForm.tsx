@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Team } from "@/integrations/supabase/types";
+import { Database } from "@/integrations/supabase/types";
+
+type Team = Database['public']['Tables']['teams']['Row'];
 
 export const TeamNameForm = () => {
   const [teamName, setTeamName] = useState("");
