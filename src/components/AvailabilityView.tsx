@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Match, Player, PlayerAvailability } from '@/types/match';
-import { format } from 'date-fns';
+import { Match, Player } from '@/types/match';
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
+  TableCell,
 } from "@/components/ui/table";
-import { Check, X, MinusCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { MatchDetails } from './availability/MatchDetails';
+import { AvailabilityIcon } from './availability/AvailabilityIcon';
 
 export const AvailabilityView = () => {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -22,7 +22,6 @@ export const AvailabilityView = () => {
     try {
       console.log('Fetching availability data...');
       
-      // Fetch matches
       const { data: matchesData, error: matchesError } = await supabase
         .from('matches')
         .select('*')
@@ -32,7 +31,6 @@ export const AvailabilityView = () => {
       setMatches(matchesData || []);
       console.log('Fetched matches:', matchesData);
 
-      // Fetch players
       const { data: playersData, error: playersError } = await supabase
         .from('players')
         .select('*');
@@ -41,7 +39,6 @@ export const AvailabilityView = () => {
       setPlayers(playersData || []);
       console.log('Fetched players:', playersData);
 
-      // Fetch all availabilities
       const { data: availabilityData, error: availabilityError } = await supabase
         .from('player_availability')
         .select('*');
@@ -49,9 +46,8 @@ export const AvailabilityView = () => {
       if (availabilityError) throw availabilityError;
       console.log('Fetched availabilities:', availabilityData);
 
-      // Transform availability data
       const availabilityMap: Record<string, Record<string, string>> = {};
-      availabilityData?.forEach((availability: PlayerAvailability) => {
+      availabilityData?.forEach((availability) => {
         if (!availabilityMap[availability.match_id]) {
           availabilityMap[availability.match_id] = {};
         }
@@ -69,40 +65,6 @@ export const AvailabilityView = () => {
     fetchData();
   }, []);
 
-  const getAvailabilityIcon = (matchId: string, playerId: string) => {
-    const status = availabilities[matchId]?.[playerId];
-    
-    switch (status) {
-      case 'available':
-        return <Check className="mx-auto text-green-500" />;
-      case 'not_available':
-        return <X className="mx-auto text-red-500" />;
-      case 'tentative':
-        return <MinusCircle className="mx-auto text-yellow-500" />;
-      default:
-        return <X className="mx-auto text-gray-300" />;
-    }
-  };
-
-  const getAvailabilityCounts = (matchId: string) => {
-    const counts = {
-      available: 0,
-      not_available: 0,
-      tentative: 0,
-      not_selected: 0
-    };
-
-    players.forEach(player => {
-      const status = availabilities[matchId]?.[player.id];
-      if (status === 'available') counts.available++;
-      else if (status === 'not_available') counts.not_available++;
-      else if (status === 'tentative') counts.tentative++;
-      else counts.not_selected++;
-    });
-
-    return counts;
-  };
-
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-6">Player Availability</h2>
@@ -119,33 +81,20 @@ export const AvailabilityView = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {matches.map((match) => {
-              const counts = getAvailabilityCounts(match.id);
-              return (
-                <TableRow key={match.id}>
-                  <TableCell className="font-medium">
-                    <div>vs {match.opponent}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {format(new Date(match.date_time), "PPP")} at {format(new Date(match.date_time), "p")}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {match.match_type === 'home' ? "Home" : "Away"} - {match.location}
-                    </div>
-                    <div className="mt-2 text-sm">
-                      <span className="text-green-500">Available: {counts.available}</span> •{' '}
-                      <span className="text-red-500">Not Available: {counts.not_available}</span> •{' '}
-                      <span className="text-yellow-500">Tentative: {counts.tentative}</span> •{' '}
-                      <span className="text-gray-500">Not Selected: {counts.not_selected}</span>
-                    </div>
+            {matches.map((match) => (
+              <TableRow key={match.id}>
+                <MatchDetails 
+                  match={match}
+                  players={players}
+                  availabilities={availabilities}
+                />
+                {players.map((player) => (
+                  <TableCell key={player.id} className="text-center">
+                    <AvailabilityIcon status={availabilities[match.id]?.[player.id]} />
                   </TableCell>
-                  {players.map((player) => (
-                    <TableCell key={player.id} className="text-center">
-                      {getAvailabilityIcon(match.id, player.id)}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              );
-            })}
+                ))}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
