@@ -82,9 +82,6 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
-          role: Database["public"]["Enums"]["team_role"]
-          sex: string
-          team_id: string | null
           usta_rating: Database["public"]["Enums"]["usta_rating"]
         }
         Insert: {
@@ -93,9 +90,6 @@ export type Database = {
           first_name: string
           id?: string
           last_name: string
-          role?: Database["public"]["Enums"]["team_role"]
-          sex?: string
-          team_id?: string | null
           usta_rating: Database["public"]["Enums"]["usta_rating"]
         }
         Update: {
@@ -104,20 +98,9 @@ export type Database = {
           first_name?: string
           id?: string
           last_name?: string
-          role?: Database["public"]["Enums"]["team_role"]
-          sex?: string
-          team_id?: string | null
           usta_rating?: Database["public"]["Enums"]["usta_rating"]
         }
-        Relationships: [
-          {
-            foreignKeyName: "players_team_id_fkey"
-            columns: ["team_id"]
-            isOneToOne: false
-            referencedRelation: "teams"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -143,24 +126,6 @@ export type Database = {
           id?: string
           last_name?: string | null
           rating?: string | null
-        }
-        Relationships: []
-      }
-      teams: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
         }
         Relationships: []
       }
@@ -191,7 +156,6 @@ export type Database = {
         | "4.5C"
         | "5.0A"
         | "5.0C"
-      team_role: "captain" | "co_captain" | "player"
       usta_rating:
         | "2.5C"
         | "3.0S"
