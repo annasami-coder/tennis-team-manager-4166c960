@@ -22,6 +22,7 @@ export const MatchList = ({ currentPlayerId }: MatchListProps) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [availabilities, setAvailabilities] = useState<PlayerAvailability[]>([]);
   const [matchToEdit, setMatchToEdit] = useState<Match | undefined>();
+  const [showPastMatches, setShowPastMatches] = useState(false);
 
   const fetchMatches = async () => {
     try {
@@ -87,10 +88,26 @@ export const MatchList = ({ currentPlayerId }: MatchListProps) => {
     setMatchToEdit(match);
   };
 
+  const filteredMatches = matches.filter(match => {
+    const matchDate = new Date(match.date_time);
+    const now = new Date();
+    return showPastMatches ? matchDate < now : matchDate >= now;
+  });
+
   return (
     <div className="mt-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-tennis-blue">Upcoming Matches</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-bold text-tennis-blue">
+            {showPastMatches ? 'Past Matches' : 'Upcoming Matches'}
+          </h2>
+          <Button
+            variant="outline"
+            onClick={() => setShowPastMatches(!showPastMatches)}
+          >
+            {showPastMatches ? 'Show Upcoming' : 'Show Past Matches'}
+          </Button>
+        </div>
         <Link to="/availability">
           <Button variant="outline">View Availability</Button>
         </Link>
@@ -109,7 +126,7 @@ export const MatchList = ({ currentPlayerId }: MatchListProps) => {
         </div>
       )}
 
-      {matches.length > 0 ? (
+      {filteredMatches.length > 0 ? (
         <div className="relative">
           <Carousel
             opts={{
@@ -119,7 +136,7 @@ export const MatchList = ({ currentPlayerId }: MatchListProps) => {
             className="w-full"
           >
             <CarouselContent className="-ml-2 md:-ml-4">
-              {matches.map((match) => (
+              {filteredMatches.map((match) => (
                 <CarouselItem key={match.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
                   <MatchCard
                     match={match}
@@ -138,7 +155,9 @@ export const MatchList = ({ currentPlayerId }: MatchListProps) => {
         </div>
       ) : (
         <div className="text-center text-gray-500 py-8">
-          No matches scheduled yet. Add your first match above!
+          {showPastMatches 
+            ? "No past matches found."
+            : "No upcoming matches scheduled yet. Add your first match above!"}
         </div>
       )}
     </div>
