@@ -28,7 +28,8 @@ const Index = () => {
         firstName: player.first_name,
         lastName: player.last_name,
         cellNumber: player.cell_number,
-        ustaRating: player.usta_rating
+        ustaRating: player.usta_rating,
+        role: player.role // Adding the missing role property
       }));
 
       setPlayers(mappedPlayers);
