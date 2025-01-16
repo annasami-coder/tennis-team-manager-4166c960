@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { PlayerManagement } from "@/components/PlayerManagement";
 import { MatchManagement } from "@/components/MatchManagement";
+import { TeamNameForm } from "@/components/TeamNameForm";
 import { type Player } from "@/components/PlayerForm";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -46,6 +47,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-12">
+        <TeamNameForm />
         <MatchManagement players={players} />
         <PlayerManagement />
       </div>
