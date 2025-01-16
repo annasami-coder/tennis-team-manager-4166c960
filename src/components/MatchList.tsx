@@ -1,18 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Match, PlayerAvailability } from '@/types/match';
-import { MatchCard } from './MatchCard';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { MatchForm } from './MatchForm';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { MatchListHeader } from './MatchListHeader';
+import { MatchCarousel } from './MatchCarousel';
 
 interface MatchListProps {
   currentPlayerId?: string;
@@ -84,10 +76,6 @@ export const MatchList = ({ currentPlayerId }: MatchListProps) => {
     }
   };
 
-  const handleEditMatch = (match: Match) => {
-    setMatchToEdit(match);
-  };
-
   const filteredMatches = matches.filter(match => {
     const matchDate = new Date(match.date_time);
     const now = new Date();
@@ -96,22 +84,10 @@ export const MatchList = ({ currentPlayerId }: MatchListProps) => {
 
   return (
     <div className="mt-8">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold text-tennis-blue">
-            {showPastMatches ? 'Past Matches' : 'Upcoming Matches'}
-          </h2>
-          <Button
-            variant="outline"
-            onClick={() => setShowPastMatches(!showPastMatches)}
-          >
-            {showPastMatches ? 'Show Upcoming' : 'Show Past Matches'}
-          </Button>
-        </div>
-        <Link to="/availability">
-          <Button variant="outline">View Availability</Button>
-        </Link>
-      </div>
+      <MatchListHeader 
+        showPastMatches={showPastMatches}
+        onTogglePastMatches={() => setShowPastMatches(!showPastMatches)}
+      />
 
       {matchToEdit && (
         <div className="mb-6">
@@ -127,32 +103,14 @@ export const MatchList = ({ currentPlayerId }: MatchListProps) => {
       )}
 
       {filteredMatches.length > 0 ? (
-        <div className="relative">
-          <Carousel
-            opts={{
-              align: "start",
-              loop: false,
-            }}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {filteredMatches.map((match) => (
-                <CarouselItem key={match.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
-                  <MatchCard
-                    match={match}
-                    onDelete={handleDeleteMatch}
-                    onEdit={handleEditMatch}
-                    playerId={currentPlayerId}
-                    availabilityStatus={availabilities.find(a => a.match_id === match.id)?.status}
-                    onAvailabilityChange={fetchAvailabilities}
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="hidden md:flex" />
-            <CarouselNext className="hidden md:flex" />
-          </Carousel>
-        </div>
+        <MatchCarousel
+          matches={filteredMatches}
+          onDelete={handleDeleteMatch}
+          onEdit={setMatchToEdit}
+          playerId={currentPlayerId}
+          availabilities={availabilities}
+          onAvailabilityChange={fetchAvailabilities}
+        />
       ) : (
         <div className="text-center text-gray-500 py-8">
           {showPastMatches 
